@@ -165,11 +165,15 @@ function enable_ups(){
 	else
 		INSTALLED=0
 	fi
-	cp $FILENAME $FILEPATH$FILENAME
-	cp $NEO $FILEPATH$LIBNEO
-	cp $SERVICEFILE $SERVICEPATH$SERVICEFILE
-	sed -i 's/^LED_PIN.*/LED_PIN = '$GPIO'/' $FILEPATH$FILENAME
-	sed -i 's/^LED_BRIGHTNESS.*/LED_BRIGHTNESS = '$BRIGHTNESS'/' $FILEPATH$FILENAME
+	if [ -f '$FILENAME' ]; then
+		cp $FILENAME $FILEPATH$FILENAME
+	fi
+	if [ -f '$LIBNEO' ]; then
+		cp $LIBNEO $FILEPATH$LIBNEO
+	fi
+	if [ -f '$SERVICEFILE' ]; then
+		cp $SERVICEFILE $SERVICEPATH$SERVICEFILE
+	fi
 	enable_service
 	start_service
 	return
@@ -292,13 +296,24 @@ do
 			GPIO=12
 			;;
 		esac
-		menu_main
+		if [ -f $FILENAME ]; then
+			sed -i 's/^LED_PIN.*/LED_PIN = '$GPIO'/' $FILENAME
+		fi
+		if [ -f $FILEPATH$FILENAME ]; then
+			sed -i 's/^LED_PIN.*/LED_PIN = '$GPIO'/' $FILEPATH$FILENAME
+		fi
 		;;
 		2)
 		menu_brightness
 		PERCENT=$?
 		percnet_to_brightness $PERCENT
 		BRIGHTNESS=$?
+		if [ -f $FILENAME ]; then
+			sed -i 's/^LED_BRIGHTNESS.*/LED_BRIGHTNESS = '$BRIGHTNESS'/' $FILENAME
+		fi
+		if [ -f $FILEPATH$FILENAME ]; then
+			sed -i 's/^LED_BRIGHTNESS.*/LED_BRIGHTNESS = '$BRIGHTNESS'/' $FILEPATH$FILENAME
+		fi
 		;;
 		3)
 		if [ $INSTALLED -eq 1 ]; then
