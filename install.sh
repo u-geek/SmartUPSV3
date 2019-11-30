@@ -8,7 +8,6 @@ BACKTITLE="UGEEK WORKSHOP [ ugeek.aliexpress.com | ukonline2000.taobao.com ]"
 INSTALLED=0
 BRIGHTNESS=127
 GPIO=18
-INSTALLORREMOVE='INSTALL'
 FILENAME="smartups.py"
 LIBNEO="neopixel.py"
 FILEPATH="/usr/local/bin/"
@@ -244,8 +243,9 @@ function menu_main(){
 	14 60 6 \
 	"1" "GPIO <$GPIO>." \
 	"2" "Brightness <$BRIGHTNESS_MENU>." \
-	"3" "$INSTALLORREMOVE." \
-	"4" "Exit."  3>&1 1>&2 2>&3)
+	"3" "Apply." \
+	"4" "Disable." \
+	"5" "Exit."  3>&1 1>&2 2>&3)
 	return $OPTION
 }
 
@@ -267,10 +267,8 @@ do
 	check_installed
 	if [ $? -eq 1 ]; then
 		INSTALLED=1
-		INSTALLORREMOVE="Disable"
 	else
 		INSTALLED=0
-		INSTALLORREMOVE="Enable"
 	fi
 	brightness_to_percent $BRIGHTNESS
 	BRIGHTNESS_MENU=$?"0%"
@@ -297,11 +295,15 @@ do
 		3)
 		if [ $INSTALLED -eq 1 ]; then
 			disable_ups
+			enable_ups
 		else
 			enable_ups
 		fi
 		;;
 		4)
+		disable_ups
+		;;
+		5)
 		exit
 		;;
 		*)
