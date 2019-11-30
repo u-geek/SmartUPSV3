@@ -142,6 +142,7 @@ function get_brightness(){
 	else
 		BRIGHTNESS=$(grep -n '^LED_BRIGHTNESS' $FILENAME | awk -F " " '{print $3}')
 	fi
+	return $BRIGHTNESS
 }
 
 # get poweroff power
@@ -400,8 +401,11 @@ fi
 get_gpio
 get_brightness
 BRIGHTNESS=$?
-brightness_to_percent
-BRIGHTNESS_MENU=$?"%"
+brightness_to_percent $BRIGHTNESS
+PERCENT=$?
+BRIGHTNESS_MENU=$PERCENT"%"
+
+exit
 get_poweroff_power
 
 check_installed
