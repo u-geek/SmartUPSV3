@@ -15,6 +15,7 @@ BUS_ADDR 		= 1
 disconnectflag 	= False
 exit_thread 	= False
 max17048_soc	= 0
+POWEROFF_POWER = 5
 
 #MAX17048 settings
 MAX17048_ADDR 	= 0x36
@@ -43,11 +44,11 @@ REG_FAULT		= 0x0c
 
 # WS2812 settings
 LED_COUNT      	= 16      # Number of LED pixels.
-LED_PIN        	= 18      # GPIO pin connected to the pixels (18 uses PWM!).
+LED_PIN = 18
 # LED_PIN        = 10      # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
 LED_FREQ_HZ    	= 800000  # LED signal frequency in hertz (usually 800khz)
 LED_DMA        	= 10      # DMA channel to use for generating signal (try 10)
-LED_BRIGHTNESS 	= 127     # Set to 0 for darkest and 255 for brightest
+LED_BRIGHTNESS = 26
 LED_INVERT     	= False   # True to invert the signal (when using NPN transistor level shift)
 LED_CHANNEL    	= 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 # LED Color
@@ -427,6 +428,9 @@ if __name__ == '__main__':
 		while (True):
 			max17048_getstatus()
 			bq25895_read_status()
+			
+			if ((bq25895_status['Input'] != 'Connected') and (max17048_soc < POWEROFF_POWER)):
+				os.system("sudo halt -h")
 #			print_max17048status()
 #			print_bq25895status()
 #			print "step: " , step, " Charge status:" , bq25895_status['ChargeStatus'], " soc: ", max17048_soc

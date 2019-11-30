@@ -15,44 +15,49 @@ SERVICENAME="smartups"
 SERVICEFILE="smartups.service"
 SERVICEPATH="/etc/systemd/system/"
 SOFTWARE_LIST="scons"
+POWEROFF_POWER=15
+SERVICEENABLED="disabled"
 
 function brightness_to_percent(){
 	case $1 in 
 		0)
 		return 0
 		;;
-		26)
-		return 1
-		;;
-		51)
-		return 2
-		;;
-		77)
-		return 3
-		;;
-		102)
-		return 4
-		;;
-		127)
+		12)
 		return 5
 		;;
-		153)
-		return 6
-		;;
-		179)
-		return 7
-		;;
-		204)
-		return 8
-		;;
-		230)
-		return 9
-		;;
-		255)
+		26)
 		return 10
 		;;
+		51)
+		return 20
+		;;
+		77)
+		return 30
+		;;
+		102)
+		return 40
+		;;
+		127)
+		return 50
+		;;
+		153)
+		return 60
+		;;
+		179)
+		return 70
+		;;
+		204)
+		return 80
+		;;
+		230)
+		return 90
+		;;
+		255)
+		return 100
+		;;
 		*)
-		return 5
+		return 50
 		;;
 	esac
 }
@@ -62,34 +67,37 @@ function percnet_to_brightness() {
 		0)
 		return 0
 		;;
-		1)
-		return 26
-		;;
-		2)
-		return 51
-		;;
-		3)
-		return 77
-		;;
-		4)
-		return 102
-		;;
 		5)
-		return 127
-		;;
-		6)
-		return 153
-		;;
-		7)
-		return 179
-		;;
-		8)
-		return 204
-		;;
-		9)
-		return 230
+		return 12
 		;;
 		10)
+		return 26
+		;;
+		20)
+		return 51
+		;;
+		30)
+		return 77
+		;;
+		40)
+		return 102
+		;;
+		50)
+		return 127
+		;;
+		60)
+		return 153
+		;;
+		70)
+		return 179
+		;;
+		80)
+		return 204
+		;;
+		90)
+		return 230
+		;;
+		100)
 		return 255
 		;;
 		*)
@@ -100,52 +108,6 @@ function percnet_to_brightness() {
 
 # install system required
 function install_sysreq(){
-	pip install rpi-ws281x
-}
-# get current gpio
-function get_gpio(){
-	if [ -f '$FILEPATH$FILENAME' ] ; then
-		GPIO=$(grep -n '^LED_PIN' $FILEPATH$FILENAME | awk -F " " '{print $3}')
-	else
-		GPIO=$(grep -n '^LED_PIN' smartups.py | awk -F " " '{print $3}')
-	fi
-}
-
-# get current brightness
-function get_brightness(){
-	BRIGHTNESS=$(grep -n '^LED_BRIGHTNESS' $FILEPATH$FILENAME | awk -F " " '{print $3}')
-}
-
-# check the script is installed
-function check_installed(){
-	if [ -f "$FILEPATH$FILENAME" ]; then
-		if [ -f "$SERVICEPATH$SERVICEFILE" ]; then
-			return 1
-		fi
-	fi
-	return 0
-}
-
-function enable_service(){
-	systemctl enable $SERVICENAME
-}
-
-function disable_service(){
-	systemctl disable $SERVICENAME
-}
-
-function stop_service(){
-	systemctl stop $SERVICENAME
-}
-
-function start_service(){
-	systemctl start $SERVICENAME
-}
-
-# enable ups
-function enable_ups(){
-	echo "Enable ups"
-	check_installed
 	SOFT=$(dpkg -l $SOFTWARE_LIST | grep "<none>")
 	if [ -n "$SOFT" ]; then
 		apt update
@@ -158,45 +120,153 @@ function enable_ups(){
 	else
 		echo "rpi-ws281x already exists."
 	fi
-	if [ $? -eq 1 ]; then
-		INSTALLED=1
-		stop_service
-		disable_service
+}
+
+function check_autorun(){
+	return 1
+}
+
+# get current gpio
+function get_gpio(){
+	if [ -f $FILEPATH$FILENAME ] ; then
+		GPIO=$(grep -n '^LED_PIN' $FILEPATH$FILENAME | awk -F " " '{print $3}')
 	else
-		INSTALLED=0
+		GPIO=$(grep -n '^LED_PIN' $FILENAME | awk -F " " '{print $3}')
 	fi
-	if [ -f '$FILENAME' ]; then
+}
+
+# get current brightness
+function get_brightness(){
+	if [ -f $FILEPATH$FILENAME ]; then
+		BRIGHTNESS=$(grep -n '^LED_BRIGHTNESS' $FILEPATH$FILENAME | awk -F " " '{print $3}')
+	else
+		BRIGHTNESS=$(grep -n '^LED_BRIGHTNESS' $FILENAME | awk -F " " '{print $3}')
+	fi
+}
+
+# get poweroff power
+function get_poweroff_power(){
+	if [ -f $FILEPATH$FILENAME ]; then
+		POWEROFF_POWER=$(grep -n '^POWEROFF_POWER' $FILEPATH$FILENAME | awk -F " " '{print $3}')
+	else
+		POWEROFF_POWER=$(grep -n '^POWEROFF_POWER' $FILENAME | awk -F " " '{print $3}')
+	fi
+}
+
+# get service is enabled
+function get_service_isenabled(){
+	SERVICEENABLED=$(systemctl is-enabled smartups)
+	if [ $SERVICEENABLED = "enabled" ]; then
+		return 1
+	else
+		return 0
+	fi
+}
+
+# check the script is installed
+function check_installed(){
+	if [ -f $FILEPATH$FILENAME -a -f $SERVICEPATH$SERVICEFILE ]; then
+		return 1
+	else
+		return 0
+	fi
+}
+
+function enable_service(){
+	get_service_isenabled
+	if [ $? -eq 1 ]; then
+		echo "Service has been enabled."
+		return
+	fi
+	if [ -f $FILEPATH$FILENAME -a -f $SERVICEPATH$SERVICEFILE ]; then
+		systemctl enable $SERVICENAME
+	else
+		echo "Service does not exists."
+	fi
+}
+
+function disable_service(){
+	get_service_isenabled
+	if [ $? -eq 1 ]; then
+		systemctl disable $SERVICENAME
+	else
+		echo "Service does not exists or has been stopped."
+	fi
+}
+
+function stop_service(){
+	check_installed
+	if [ $? -eq 1 ]; then
+		RESULT=$(systemctl is-failed smartups)
+		if [ $RESULT = "active" ]; then
+			systemctl stop $SERVICENAME
+			echo "Service stopped."
+		else
+			echo "Service already stopped."
+		fi
+	else
+		echo "Service not installed, do not need to stop."
+	fi
+	
+}
+
+function start_service(){
+	check_installed
+	if [ $? -eq 1 ]; then
+		echo "Start service now."
+		systemctl start $SERVICENAME
+	else
+		echo "Service not installed."
+	fi
+}
+
+# enable ups
+function install_ups(){
+	echo "Install UGEEK Smart UPS Service."
+	install_sysreq
+
+	if [ -f $FILENAME ]; then
 		cp $FILENAME $FILEPATH$FILENAME
 	fi
-	if [ -f '$LIBNEO' ]; then
+	if [ -f $LIBNEO ]; then
 		cp $LIBNEO $FILEPATH$LIBNEO
 	fi
-	if [ -f '$SERVICEFILE' ]; then
+	if [ -f $SERVICEFILE ]; then
 		cp $SERVICEFILE $SERVICEPATH$SERVICEFILE
 	fi
 	enable_service
 	start_service
-	return
+	RESULT=$(systemctl is-failed smartups)
+	if [ $RESULT = "active" ]; then
+		echo "Service successfully installed."
+	else
+		echo "Service install failed, clean now."
+		remove_ups
+	fi
 }
 
 # disable ups
-function disable_ups(){
-	echo "Disable ups"
-	check_installed
-	if [ $? -eq 1 ]; then
-		echo "disable ups"
+function remove_ups(){
+	echo "Remove UGEEK Smart UPS Service."
+	RESULT=$(systemctl is-failed smartups)
+	if [ $RESULT = "active" ]; then
+		echo "Service is running,stop it now."
 		stop_service
-		disable_service
-		if [ -f '$FILEPATH$FILENAME' ]; then
-			rm $FILEPATH$FILENAME
-		fi
-		if [ -f '$FILEPATH$LIBNEO' ]; then
-			rm $FILEPATH$LIBNEO
-		fi
-		if [ -f '$SERVICEPATH$SERVICEFILE' ]; then
-			rm $SERVICEPATH$SERVICEFILE
-		fi
 	fi
+	disable_service
+	if [ -f $FILEPATH$FILENAME ]; then
+		rm $FILEPATH$FILENAME
+	fi
+	if [ -f $FILEPATH$LIBNEO ]; then
+		rm $FILEPATH$LIBNEO
+	fi
+	if [ -f $FILEPATH$LIBNEOc ]; then
+		rm $FILEPATH$LIBNEOc
+	fi
+	if [ -f $SERVICEPATH$SERVICEFILE ]; then
+		rm $SERVICEPATH$SERVICEFILE
+	fi
+	echo "Service remove complete."
 }
 
 # menu gpio
@@ -219,16 +289,61 @@ function menu_brightness(){
 	--nocancel \
 	14 60 6 \
 	"0" "Off." \
-	"1" "10%" \
-	"2" "20%" \
-	"3" "30%" \
-	"4" "40%" \
-	"5" "50%" \
-	"6" "60%" \
-	"7" "70%" \
-	"8" "80%" \
-	"9" "90%" \
-	"10" "100%" 3>&1 1>&2 2>&3)
+	"5" "5%" \
+	"10" "10%" \
+	"20" "20%" \
+	"30" "30%" \
+	"40" "40%" \
+	"50" "50%" \
+	"60" "60%" \
+	"70" "70%" \
+	"80" "80%" \
+	"90" "90%" \
+	"100" "100%" 3>&1 1>&2 2>&3)
+	return $OPTION
+}
+
+# menu poweroff power
+function menu_poweroff_power(){
+	OPTION=$(whiptail --title "$TITLE" \
+	--menu "Select the poweroff power" \
+	--backtitle "$BACKTITLE" \
+	--nocancel \
+	--notags \
+	--default-item "15" \
+	16 60 8 \
+	"0" "0%" \
+	"1" "1%" \
+	"2" "2%" \
+	"3" "3%" \
+	"4" "4%" \
+	"5" "5%" \
+	"6" "6%" \
+	"7" "7%" \
+	"8" "8%" \
+	"9" "9%" \
+	"10" "10%" \
+	"11" "11%" \
+	"12" "12%" \
+	"13" "13%" \
+	"14" "14%" \
+	"15" "15%" \
+	"16" "16%" \
+	"17" "17%" \
+	"18" "18%" \
+	"19" "19%" \
+	"20" "20%" \
+	"21" "21%" \
+	"22" "22%" \
+	"23" "23%" \
+	"24" "24%" \
+	"25" "25%" \
+	"26" "26%" \
+	"27" "27%" \
+	"28" "28%" \
+	"29" "29%" \
+	"30" "30%" \
+	3>&1 1>&2 2>&3)
 	return $OPTION
 }
 
@@ -244,18 +359,30 @@ function menu_reboot(){
 	fi
 }
 
+# menu install
+function menu_install(){
+	OPTION=$(whiptail --title "$TITLE" \
+	--yesno "This will install UGEEK SMART UPS V3 service to your PI,Are you sure to continue?" \
+	--backtitle "$BACKTITLE" \
+	14 60 6 \
+	3>&1 1>&2 2>&3)
+	return $OPTION
+}
+
 # main menu
 function menu_main(){
 	OPTION=$(whiptail --title "$TITLE" \
 	--menu "Select the appropriate options:" \
 	--backtitle "$BACKTITLE" \
 	--nocancel \
-	14 60 6 \
-	"1" "UPS GPIO <$GPIO>" \
-	"2" "LED Brightness <$BRIGHTNESS_MENU>" \
-	"3" "Apply Settings" \
-	"4" "Disable UPS" \
-	"5" "Exit"  3>&1 1>&2 2>&3)
+	16 60 8 \
+	"1" "UPS GPIO [ $GPIO ]" \
+	"2" "LED Brightness [ $BRIGHTNESS_MENU ]" \
+	"3" "Poweoff power [ <$POWEROFF_POWER% ]" \
+	"4" "Autorun [ $SERVICEENABLED ]" \
+	"5" "Apply Settings" \
+	"6" "Remove" \
+	"7" "Exit"  3>&1 1>&2 2>&3)
 	return $OPTION
 }
 
@@ -272,18 +399,24 @@ fi
 # main
 get_gpio
 get_brightness
+BRIGHTNESS=$?
+brightness_to_percent
+BRIGHTNESS_MENU=$?%
+get_poweroff_power
+
+check_installed
+if [ $? -eq 0 ]; then
+	menu_install
+	if [ $? -eq 1 ]; then
+		exit
+	fi
+	install_ups
+fi
 
 while [ True ]
 do
-	check_installed
-	if [ $? -eq 1 ]; then
-		INSTALLED=1
-	else
-		INSTALLED=0
-	fi
-	get_brightness
-	brightness_to_percent $BRIGHTNESS
-	BRIGHTNESS_MENU=$?"0%"
+	#get_brightness
+	get_service_isenabled
 	menu_main
 	case $? in
 		1)
@@ -296,40 +429,56 @@ do
 			GPIO=12
 			;;
 		esac
-		if [ -f $FILENAME ]; then
-			sed -i 's/^LED_PIN.*/LED_PIN = '$GPIO'/' $FILENAME
-		fi
-		if [ -f $FILEPATH$FILENAME ]; then
-			sed -i 's/^LED_PIN.*/LED_PIN = '$GPIO'/' $FILEPATH$FILENAME
-		fi
 		;;
 		2)
 		menu_brightness
 		PERCENT=$?
 		percnet_to_brightness $PERCENT
 		BRIGHTNESS=$?
+		BRIGHTNESS_MENU=$PERCENT"%"
+		;;
+		3)
+		menu_poweroff_power
+		POWEROFF_POWER=$?
+		;;
+		4)
+		if [ $SERVICEENABLED = "enabled" ]; then
+			disable_service
+		else
+			enable_service
+		fi
+		;;
+		5)
+		stop_service
+		echo "GPIO:"$GPIO" Brightness:"$BRIGHTNESS" Shutdown power:"$POWEROFF_POWER
+		if [ -f $FILENAME ]; then
+			sed -i 's/^LED_PIN.*/LED_PIN = '$GPIO'/' $FILENAME
+		fi
+		if [ -f $FILEPATH$FILENAME ]; then
+			sed -i 's/^LED_PIN.*/LED_PIN = '$GPIO'/' $FILEPATH$FILENAME
+		fi
 		if [ -f $FILENAME ]; then
 			sed -i 's/^LED_BRIGHTNESS.*/LED_BRIGHTNESS = '$BRIGHTNESS'/' $FILENAME
 		fi
 		if [ -f $FILEPATH$FILENAME ]; then
 			sed -i 's/^LED_BRIGHTNESS.*/LED_BRIGHTNESS = '$BRIGHTNESS'/' $FILEPATH$FILENAME
 		fi
-		;;
-		3)
-		if [ $INSTALLED -eq 1 ]; then
-			disable_ups
-			enable_ups
-		else
-			enable_ups
+		if [ -f $FILENAME ]; then
+			sed -i 's/^POWEROFF_POWER.*/POWEROFF_POWER = '$POWEROFF_POWER'/' $FILENAME
 		fi
+		if [ -f $FILEPATH$FILENAME ]; then
+			sed -i 's/^POWEROFF_POWER.*/POWEROFF_POWER = '$POWEROFF_POWER'/' $FILEPATH$FILENAME
+		fi
+		start_service
 		;;
-		4)
-		disable_ups
+		6)
+		remove_ups
 		;;
-		5)
+		7)
 		exit
 		;;
 		*)
 		;;
 	esac
 done
+
