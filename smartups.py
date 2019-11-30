@@ -168,7 +168,7 @@ def bq25895_read_status():
 	}
 	
 	if(batv < 3.5):
-		bus.write_byte_data(ADDRESS, REG_BATFET_DIS, BYTE_BATFET_DIS)
+		bus.write_byte_data(BQ25895_ADDRESS, REG_BATFET_DIS, BYTE_BATFET_DIS)
 		
 def print_bq25895status():
 	print "Input: " , bq25895_status['Input']
