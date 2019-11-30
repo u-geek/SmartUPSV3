@@ -113,7 +113,7 @@ function get_gpio(){
 
 # get current brightness
 function get_brightness(){
-	BRIGHTNESS=$(grep -n '^LED_BRIGHTNESS' smartups.py | awk -F " " '{print $3}')
+	BRIGHTNESS=$(grep -n '^LED_BRIGHTNESS' $FILEPATH$FILENAME | awk -F " " '{print $3}')
 }
 
 # check the script is installed
@@ -183,9 +183,15 @@ function disable_ups(){
 		echo "disable ups"
 		stop_service
 		disable_service
-		rm $FILEPATH$FILENAME
-		rm $FILEPATH$LIBNEO
-		rm $SERVICEPATH$SERVICEFILE
+		if [ -f '$FILEPATH$FILENAME' ]; then
+			rm $FILEPATH$FILENAME
+		fi
+		if [ -f '$FILEPATH$LIBNEO' ]; then
+			rm $FILEPATH$LIBNEO
+		fi
+		if [ -f '$SERVICEPATH$SERVICEFILE' ]; then
+			rm $SERVICEPATH$SERVICEFILE
+		fi
 	fi
 }
 
@@ -271,6 +277,7 @@ do
 	else
 		INSTALLED=0
 	fi
+	get_brightness
 	brightness_to_percent $BRIGHTNESS
 	BRIGHTNESS_MENU=$?"0%"
 	menu_main
