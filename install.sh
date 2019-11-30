@@ -10,10 +10,12 @@ BRIGHTNESS=127
 GPIO=18
 INSTALLORREMOVE='INSTALL'
 FILENAME="smartups.py"
+LIBNEO="neopixel.py"
 FILEPATH="/usr/local/bin/"
 SERVICENAME="smartups"
 SERVICEFILE="smartups.service"
 SERVICEPATH="/etc/systemd/system/"
+SOFTWARE_LIST="scons"
 
 function brightness_to_percent(){
 	case $1 in 
@@ -145,6 +147,11 @@ function start_service(){
 function enable_ups(){
 	echo "Enable ups"
 	check_installed
+	SOFT=$(dpkg -l $SOFTWARE_LIST | grep "<none>")
+	if [ -n "$SOFT" ]; then
+		apt update
+		apt -y install $SOFTWARE_LIST
+	fi
 	SOFT=$(pip search rpi-ws281x | grep "INSTALLED")
 	if [ -z "$SOFT" ]; then
 		pip install rpi-ws281x
@@ -160,6 +167,7 @@ function enable_ups(){
 		INSTALLED=0
 	fi
 	cp $FILENAME $FILEPATH$FILENAME
+	cp $NEO $FILEPATH$LIBNEO
 	cp $SERVICEFILE $SERVICEPATH$SERVICEFILE
 	sed -i 's/^LED_PIN.*/LED_PIN = '$GPIO'/' $FILEPATH$FILENAME
 	sed -i 's/^LED_BRIGHTNESS.*/LED_BRIGHTNESS = '$BRIGHTNESS'/' $FILEPATH$FILENAME
@@ -177,6 +185,7 @@ function disable_ups(){
 		stop_service
 		disable_service
 		rm $FILEPATH$FILENAME
+		rm $FILEPATH$LIBNEO
 		rm $SERVICEPATH$SERVICEFILE
 	fi
 }

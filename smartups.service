@@ -4,6 +4,7 @@ After=multi-user.target
 
 [Service]
 ExecStart=/usr/bin/sudo /usr/bin/python2 /usr/local/bin/smartups.py
+WorkingDirectory=/usr/local/bin/
 Restart=always
 StandardOutput=syslog
 StandardError=syslog
