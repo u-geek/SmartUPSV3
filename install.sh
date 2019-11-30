@@ -145,6 +145,13 @@ function start_service(){
 function enable_ups(){
 	echo "Enable ups"
 	check_installed
+	SOFT=$(pip search rpi-ws281x | grep "INSTALLED")
+	if [ -z "$SOFT" ]; then
+		pip install rpi-ws281x
+		echo "rpi-ws281x install complete!"
+	else
+		echo "rpi-ws281x already exists."
+	fi
 	if [ $? -eq 1 ]; then
 		INSTALLED=1
 		stop_service
