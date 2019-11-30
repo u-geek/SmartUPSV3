@@ -156,7 +156,7 @@ function get_poweroff_power(){
 # get service is enabled
 function get_service_isenabled(){
 	SERVICEENABLED=$(systemctl is-enabled smartups)
-	if [ $SERVICEENABLED = "enabled" ]; then
+	if [ $SERVICEENABLED == "enabled" ]; then
 		return 1
 	else
 		return 0
@@ -198,7 +198,7 @@ function stop_service(){
 	check_installed
 	if [ $? -eq 1 ]; then
 		RESULT=$(systemctl is-failed smartups)
-		if [ $RESULT = "active" ]; then
+		if [ $RESULT == "active" ]; then
 			systemctl stop $SERVICENAME
 			echo "Service stopped."
 		else
@@ -237,7 +237,7 @@ function install_ups(){
 	enable_service
 	start_service
 	RESULT=$(systemctl is-failed smartups)
-	if [ $RESULT = "active" ]; then
+	if [ $RESULT == "active" ]; then
 		echo "Service successfully installed."
 	else
 		echo "Service install failed, clean now."
@@ -249,7 +249,7 @@ function install_ups(){
 function remove_ups(){
 	echo "Remove UGEEK Smart UPS Service."
 	RESULT=$(systemctl is-failed smartups)
-	if [ $RESULT = "active" ]; then
+	if [ $RESULT == "active" ]; then
 		echo "Service is running,stop it now."
 		stop_service
 	fi
@@ -401,7 +401,7 @@ get_gpio
 get_brightness
 BRIGHTNESS=$?
 brightness_to_percent
-BRIGHTNESS_MENU=$?%
+BRIGHTNESS_MENU=$?"%"
 get_poweroff_power
 
 check_installed
@@ -442,7 +442,7 @@ do
 		POWEROFF_POWER=$?
 		;;
 		4)
-		if [ $SERVICEENABLED = "enabled" ]; then
+		if [ $SERVICEENABLED == "enabled" ]; then
 			disable_service
 		else
 			enable_service
