@@ -241,11 +241,11 @@ function menu_main(){
 	--backtitle "$BACKTITLE" \
 	--nocancel \
 	14 60 6 \
-	"1" "GPIO <$GPIO>." \
-	"2" "Brightness <$BRIGHTNESS_MENU>." \
-	"3" "Apply." \
-	"4" "Disable." \
-	"5" "Exit."  3>&1 1>&2 2>&3)
+	"1" "UPS GPIO <$GPIO>" \
+	"2" "LED Brightness <$BRIGHTNESS_MENU>" \
+	"3" "Apply Settings" \
+	"4" "Disable UPS" \
+	"5" "Exit"  3>&1 1>&2 2>&3)
 	return $OPTION
 }
 
@@ -261,6 +261,7 @@ fi
 
 # main
 get_gpio
+get_brightness
 
 while [ True ]
 do
