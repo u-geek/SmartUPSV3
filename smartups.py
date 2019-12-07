@@ -247,13 +247,13 @@ def led_charginto25():
 	for i in range(0,255):
 		if exit_thread:
 			return
-		strip.setPixelColor(3, Color(i,0,0))
+		strip.setPixelColor(3, Color(0,0,i))
 		strip.show()
 		time.sleep(0.005)
 	for i in range(255,0,-1):
 		if exit_thread:
 			return
-		strip.setPixelColor(3, Color(i,0,0))
+		strip.setPixelColor(3, Color(0,0,i))
 		strip.show()
 		time.sleep(0.005)
 	time.sleep(1)
@@ -263,17 +263,17 @@ def led_charginto25():
 def led_chargingto50():
 	strip.setPixelColor(0, COLOR_BLACK)
 	strip.setPixelColor(1, COLOR_BLACK)
-	strip.setPixelColor(3, COLOR_GREEN)
+	strip.setPixelColor(3, COLOR_BLUE)
 	for i in range(0,255):
 		if exit_thread:
 			return
-		strip.setPixelColor(2, Color(i,0,0))
+		strip.setPixelColor(2, Color(0,0,i))
 		strip.show()
 		time.sleep(0.005)
 	for i in range(255,0,-1):
 		if exit_thread:
 			return
-		strip.setPixelColor(2, Color(i,0,0))
+		strip.setPixelColor(2, Color(0,0,i))
 		strip.show()
 		time.sleep(0.005)
 	time.sleep(1)
@@ -282,18 +282,18 @@ def led_chargingto50():
 # led 1,2 green,led 3 flash, led 4 black
 def led_chargingto75():
 	strip.setPixelColor(0, COLOR_BLACK)
-	strip.setPixelColor(2, COLOR_GREEN)
-	strip.setPixelColor(3, COLOR_GREEN)
+	strip.setPixelColor(2, COLOR_BLUE)
+	strip.setPixelColor(3, COLOR_BLUE)
 	for i in range(0,255):
 		if exit_thread:
 			return
-		strip.setPixelColor(1, Color(i,0,0))
+		strip.setPixelColor(1, Color(0,0,i))
 		strip.show()
 		time.sleep(0.005)
 	for i in range(255,0,-1):
 		if exit_thread:
 			return
-		strip.setPixelColor(1, Color(i,0,0))
+		strip.setPixelColor(1, Color(0,0,i))
 		strip.show()
 		time.sleep(0.005)
 	time.sleep(1)
@@ -301,19 +301,19 @@ def led_chargingto75():
 # Charging from 75% to 100%
 # led 1,2,3 green,led 4 flash
 def led_chargingto100():
-	strip.setPixelColor(1, COLOR_GREEN)
-	strip.setPixelColor(2, COLOR_GREEN)
-	strip.setPixelColor(3, COLOR_GREEN)
+	strip.setPixelColor(1, COLOR_BLUE)
+	strip.setPixelColor(2, COLOR_BLUE)
+	strip.setPixelColor(3, COLOR_BLUE)
 	for i in range(0,255):
 		if exit_thread:
 			return
-		strip.setPixelColor(0, Color(i,0,0))
+		strip.setPixelColor(0, Color(0,0,i))
 		strip.show()
 		time.sleep(0.005)
 	for i in range(255,0,-1):
 		if exit_thread:
 			return
-		strip.setPixelColor(0, Color(i,0,0))
+		strip.setPixelColor(0, Color(0,0,i))
 		strip.show()
 		time.sleep(0.005)
 	time.sleep(1)

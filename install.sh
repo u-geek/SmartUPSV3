@@ -18,6 +18,7 @@ SOFTWARE_LIST="scons"
 POWEROFF_POWER=15
 SERVICEENABLED="disabled"
 ICL=104
+MENU_INSTALLED="Remove"
 
 function brightness_to_percent(){
 	case $1 in 
@@ -158,7 +159,7 @@ function get_poweroff_power(){
 # get service is enabled
 function get_service_isenabled(){
 	SERVICEENABLED=$(systemctl is-enabled smartups)
-	if [ $SERVICEENABLED == "enabled" ]; then
+	if [ "$SERVICEENABLED" == "enabled" ]; then
 		return 1
 	else
 		return 0
@@ -410,7 +411,7 @@ function menu_main(){
 	"3" "Poweoff power [ <$POWEROFF_POWER% ]" \
 	"4" "Autorun [ $SERVICEENABLED ]" \
 	"5" "Apply Settings" \
-	"6" "Remove" \
+	"6" "$MENU_INSTALLED" \
 	"7" "Exit"  3>&1 1>&2 2>&3)
 	return $OPTION
 }
@@ -432,7 +433,6 @@ BRIGHTNESS=$?
 brightness_to_percent $BRIGHTNESS
 PERCENT=$?
 BRIGHTNESS_MENU=$PERCENT"%"
-
 get_poweroff_power
 
 check_installed
@@ -447,6 +447,12 @@ fi
 while [ True ]
 do
 	#get_brightness
+	check_installed
+	if [ $? -eq 0 ]; then
+		MENU_INSTALLED="Install"
+	else
+		MENU_INSTALLED="Remove"
+	fi
 	get_service_isenabled
 	menu_main
 	case $? in
@@ -503,7 +509,11 @@ do
 		start_service
 		;;
 		6)
-		remove_ups
+		if [ "$MENU_INSTALLED" == "Install" ]; then
+			install_ups
+		else
+			remove_ups
+		fi
 		;;
 		7)
 		exit
