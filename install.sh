@@ -17,6 +17,7 @@ SERVICEPATH="/etc/systemd/system/"
 SOFTWARE_LIST="scons"
 POWEROFF_POWER=15
 SERVICEENABLED="disabled"
+ICL=104
 
 function brightness_to_percent(){
 	case $1 in 
@@ -370,13 +371,40 @@ function menu_install(){
 	return $OPTION
 }
 
+#menu input current limit
+function menu_icl(){
+	OPTION=$(whiptail --title "$TITLE" \
+	--menu "Select the appropriate options:" \
+	--backtitle "$BACKTITLE" \
+	--nocancel \
+	17 60 9 \
+	"1" "2A" \
+	"2" "3A" \
+	"3" "3.25A" \
+	"R" "Return"
+	>&1 1>&2 2>&3)
+	return $OPTION
+}
+
+# main menu
+function menu_advanced(){
+	OPTION=$(whiptail --title "$TITLE" \
+	--menu "Select the appropriate options:" \
+	--backtitle "$BACKTITLE" \
+	--nocancel \
+	17 60 9 \
+	"1" "Input Curernt Limit [ ]" \
+	"R" "Return"  3>&1 1>&2 2>&3)
+	return $OPTION
+}
+
 # main menu
 function menu_main(){
 	OPTION=$(whiptail --title "$TITLE" \
 	--menu "Select the appropriate options:" \
 	--backtitle "$BACKTITLE" \
 	--nocancel \
-	16 60 8 \
+	17 60 9 \
 	"1" "UPS GPIO [ $GPIO ]" \
 	"2" "LED Brightness [ $BRIGHTNESS_MENU ]" \
 	"3" "Poweoff power [ <$POWEROFF_POWER% ]" \
@@ -405,7 +433,6 @@ brightness_to_percent $BRIGHTNESS
 PERCENT=$?
 BRIGHTNESS_MENU=$PERCENT"%"
 
-exit
 get_poweroff_power
 
 check_installed

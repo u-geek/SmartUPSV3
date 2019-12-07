@@ -25,9 +25,11 @@ BQ25895_ADDRESS = 0x6A
 REG_WATCHDOG    = 0x07
 BYTE_WATCHDOG_STOP = 0b10001101 #Stop Watchdog timer
 REG_ILIM 		= 0x00 #ILIM register
-BYTE_ILIM 		= 0b01101000 #2A input current limit
+#BYTE_ILIM 		= 0b01101000 #2A input current limit
+#BYTE_ILIM 		= 0b01111100 #3A input current limit
+BYTE_ILIM 		= 0b01111111 #3.25A input current limit
 REG_ICHG 		= 0x04 
-BYTE_ICHG 		=  0b00001000 #.5A charging current limit
+BYTE_ICHG 		= 0b01111111 #.5A charging current limit
 REG_CONV_ADC 	= 0x02
 REG_BATFET 		= 0x09
 BYTE_BATFET 	= 0b01001000 #delay before battery == disconnected
@@ -41,6 +43,7 @@ BYTE_BATFET_DIS = 0b01101000
 REG_STATUS		= 0x0B #address of status register
 REG_BATV		= 0x0e
 REG_FAULT		= 0x0c
+REG_BATI		= 0x12
 
 # WS2812 settings
 LED_COUNT      	= 16      # Number of LED pixels.
@@ -86,7 +89,6 @@ def bq25895_init():
 	bus.write_byte_data(BQ25895_ADDRESS, REG_ILIM, BYTE_ILIM)
 	bus.write_byte_data(BQ25895_ADDRESS, REG_ICHG, BYTE_ICHG)
 	bus.write_byte_data(BQ25895_ADDRESS, REG_BATFET, BYTE_BATFET)
-	return True
 
 def bq25895_int_to_bool_list(num):
 	return [bool(num & (1<<n)) for n in range(8)]
@@ -98,6 +100,8 @@ def bq25895_translate(val, in_from, in_to, out_from, out_to):
 	val=(float(in_val)/in_range)*out_range
 	out_val = out_from+val
 	return out_val
+def bq25895_read_reg(reg):
+	return bus.read_byte_data(BQ25895_ADDRESS, reg)
 
 # BQ25895 read status
 def bq25895_read_status():
@@ -110,7 +114,12 @@ def bq25895_read_status():
 	batvbool = bq25895_int_to_bool_list(sample)
 	bus.write_byte_data(BQ25895_ADDRESS, REG_CONV_ADC, BYTE_CONV_ADC_STOP)
 	#print(sample)
-	#print(batvbool)
+	vsys_stat = status[0]
+	sdp_stat = status[1]
+	pg_stat = status[2]
+	chrg_stat = status[4] * 2 + status[3]
+	vbus_stat = status[7] * 4 + status[6] * 2 + status[5]
+	
 	if status[2]:
 		power = "Connected"
 	else:
@@ -151,12 +160,12 @@ def bq25895_read_status():
 	if power == "Not Connected" and disconnectflag == False :
 		disconnectflag = True
 		message = "echo Power Disconnected, system will shutdown in %d minutes! | wall" % (timeleftmin)
-		os.system(message)
+		#os.system(message)
 	
 	if power == "Connected" and disconnectflag == True :
 		disconnectflag = False
 		message = "echo Power Restored, battery at %d percent | wall" % (batpercentprev * 100)
-		os.system(message)
+		#os.system(message)
 
 	batpercentprev = batpercent
 	
@@ -176,7 +185,9 @@ def print_bq25895status():
 	print "ChargeStatus: " , bq25895_status['ChargeStatus']
 	print "BatteryVoltage: " , bq25895_status['BatteryVoltage'], "V"
 	print "BatteryPercentage: " , bq25895_status['BatteryPercentage'] , "%"
-	#print "TimeRemaining: " , bq25895_status['TimeRemaining']
+	print("VSYS_STAT: ", bin(vsys_stat), "SDP_STAT: ", bin(sdp_stat), 
+		"PG_STAT:", bin(pg_stat), "CHRG_STAT:" , bin(chrg_stat), 
+		"VBUS_STAT:", bin(vbus_stat))
 	
 def print_max17048status():
 	print "Status of max17048:"
@@ -402,25 +413,25 @@ def ignore(sig, frsma):
 	exit_thread = True
 	
 def handler(signum, frame):
-    #print "Signal is received:" + str(signum)
-    #global RUNNING
+    print "Signal is received:" + str(signum)
     exit_thread=True
-
-# Main Loop
-if __name__ == '__main__':
+    thread_led.join()
+    exit
+	
+def handle_signal():
 	signal.signal(signal.SIGUSR1, handler)
 	signal.signal(signal.SIGUSR2, handler)
 	signal.signal(signal.SIGALRM, handler)
 	signal.signal(signal.SIGINT, handler)
 	signal.signal(signal.SIGQUIT, handler)
-	
+
+# Main Loop
+if __name__ == '__main__':
 	init_i2c()
 	max17048_init()
 	bq25895_init()
 	bq25895_read_status()
 	led_init()
-	led_precharge()
-	led_precharge()
 	led_precharge()
 	thread_led = threading.Thread(target=led_show)  #线程对象
 	thread_led.start() 
@@ -428,11 +439,8 @@ if __name__ == '__main__':
 		while (True):
 			max17048_getstatus()
 			bq25895_read_status()
-			
 			if ((bq25895_status['Input'] != 'Connected') and (max17048_soc < POWEROFF_POWER)):
 				os.system("sudo halt -h")
-#			print_max17048status()
-#			print_bq25895status()
 #			print "step: " , step, " Charge status:" , bq25895_status['ChargeStatus'], " soc: ", max17048_soc
 	except:
 		exit_thread=True
