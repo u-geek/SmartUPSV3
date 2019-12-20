@@ -19,6 +19,15 @@ POWEROFF_POWER=15
 SERVICEENABLED="disabled"
 ICL=104
 MENU_INSTALLED="Remove"
+CONFIG="/boot/config.txt"
+
+function enable_i2c(){
+	sed -i '/^dtparam=i2c_arm=/d' $CONFIG
+	echo "dtparam=i2c_arm=on" >> $CONFIG
+	if ! grep -q "^i2c[-_]dev" /etc/modules; then
+		printf "i2c-dev\n" >> /etc/modules
+	fi
+}
 
 function brightness_to_percent(){
 	case $1 in 
@@ -226,6 +235,7 @@ function start_service(){
 # enable ups
 function install_ups(){
 	echo "Install UGEEK Smart UPS Service."
+	enable_i2c
 	install_sysreq
 
 	if [ -f $FILENAME ]; then
