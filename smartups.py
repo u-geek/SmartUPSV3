@@ -7,8 +7,10 @@ import os
 import time
 import smbus
 import signal
+import logging
 import threading
 from neopixel import *
+from logging.handlers import RotatingFileHandler
 
 # Global settings
 BUS_ADDR 		= 1
@@ -426,8 +428,22 @@ def handle_signal():
 	signal.signal(signal.SIGINT, handler)
 	signal.signal(signal.SIGQUIT, handler)
 
+def logging_status():
+	info = ' Input:' + bq25895_status['Input'] + ' , ChargeStatus: ' + bq25895_status['ChargeStatus'] + ' , SOC:' + str(max17048_soc) + "%"
+	app_log.info(info)
+	
 # Main Loop
 if __name__ == '__main__':
+	log_formatter = logging.Formatter('%(asctime)s  %(filename)s : %(levelname)s  %(message)s')
+	log_filename = '/var/log/smartups.log'
+	log_handler = RotatingFileHandler(log_filename, mode='a', maxBytes=5 * 1024 * 1024, 
+                                 backupCount=2, encoding=None, delay=0)
+	log_handler.setFormatter(log_formatter)
+	log_handler.setLevel(logging.INFO)
+	app_log = logging.getLogger('root')
+	app_log.setLevel(logging.DEBUG)
+	app_log.addHandler(log_handler)
+
 	init_i2c()
 	max17048_init()
 	bq25895_init()
@@ -440,10 +456,12 @@ if __name__ == '__main__':
 		while (True):
 			max17048_getstatus()
 			bq25895_read_status()
+			logging_status()
 			if ((bq25895_status['Input'] != 'Connected') and (max17048_soc < POWEROFF_POWER)):
 				count = count + 1
 				#print bq25895_status['Input']
 				if count > 10:
+					logging.warning("Shutdown")
 					os.system("sudo halt -h")
 			#print bq25895_status['Input']
 			#print " Charge status:" , bq25895_status['ChargeStatus'], " soc: ", max17048_soc

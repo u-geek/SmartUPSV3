@@ -14,6 +14,7 @@ FILEPATH="/usr/local/bin/"
 SERVICENAME="smartups"
 SERVICEFILE="smartups.service"
 SERVICEPATH="/etc/systemd/system/"
+SERVCIEPOWEROFF="/smartups_poweroff.service"
 SOFTWARE_LIST="scons"
 POWEROFF_POWER=15
 SERVICEENABLED="disabled"
@@ -280,6 +281,23 @@ function remove_ups(){
 		rm $SERVICEPATH$SERVICEFILE
 	fi
 	echo "Service remove complete."
+}
+
+function install_poweroff(){
+	if [ ! -f $SERVICEPATH$SERVCIEPOWEROFF ]; then
+		echo << EOF > $SERVICEPATH$SERVCIEPOWEROFF
+[Unit]
+Description=...
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStop=<your script/program>
+
+[Install]
+WantedBy=multi-user.target
+EOF
+	fi
 }
 
 # menu gpio

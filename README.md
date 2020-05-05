@@ -29,6 +29,12 @@ sudo ./install.sh
                └──────────────────────────────────────────────────────────┘
 
 
-View status:
+View Status:
 
 sudo python status.py or sudo python status.py -t
+
+View logs:
+
+cat /var/log/smartups.log
+
+

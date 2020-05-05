@@ -166,21 +166,21 @@ def bq25895_read_status():
 def print_bq25895status():
 	global count
 	count = count + 1
-	print "         COUNT: " , count
+	print "         Count: " , count
 	print "         Input: " , bq25895_status['Input']
 	print "  ChargeStatus: " , bq25895_status['ChargeStatus']
 	print "BatteryVoltage: " , bq25895_status['BatteryVoltage'], "V"
-	print "    BatterySOC: " , bq25895_status['BatterySOC'] , "%"
-	print ""
+	#print "    BatterySOC: " , bq25895_status['BatterySOC'] , "%"
+	#print ""
 	# print("VSYS_STAT: ", bin(vsys_stat), "SDP_STAT: ", bin(sdp_stat), 
 		# "PG_STAT:", bin(pg_stat), "CHRG_STAT:" , bin(chrg_stat), 
 		# "VBUS_STAT:", bin(vbus_stat))
 	
 def print_max17048status():
-	print "Status of max17048:"
-	print '%.2f' % max17048_v , "V"
-	print max17048_soc , "%"
-	print "Status of bq25895:"
+	#print "Status of max17048:"
+	#print "BatteryVoltage: " , '%.2f' % max17048_v , "V"
+	print "           SOC: " , max17048_soc , "%"
+	#print "Status of bq25895:"
 
 	
 def handler(signum, frame):
@@ -218,9 +218,11 @@ if __name__ == '__main__':
 				status_loop = True
 			
 		while status_loop is True:
-			max17048_getstatus()
 			bq25895_read_status()
+			max17048_getstatus()
 			print_bq25895status()
+			print_max17048status()
+			print ""
 			
 		os.system("systemctl start smartups")
 	except:
