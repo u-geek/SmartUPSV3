@@ -126,7 +126,7 @@ def bq25895_read_status():
 	if status[2]:
 		power = "Connected"
 	else:
-		power = "Not Connected"
+		power = "Disconnected"
 
 	if status[3] and status[4]:
 		charge = "Charging done"
@@ -135,7 +135,7 @@ def bq25895_read_status():
 	elif not status[4] and status[3]:
 		charge = "Pre-Charge"
 	else:
-		charge = "Not Charging"
+		charge = "Discharging"
 	
 	#convert batv register to volts
 	batv = 2.304
@@ -160,7 +160,7 @@ def bq25895_read_status():
 	if power == "Connected" :
 		timeleftmin = -1        
 	
-	if power == "Not Connected" and disconnectflag == False :
+	if power == "Disconnected" and disconnectflag == False :
 		disconnectflag = True
 		message = "echo Power Disconnected, system will shutdown in %d minutes! | wall" % (timeleftmin)
 		#os.system(message)
@@ -388,11 +388,11 @@ def led_show():
 					led_charginto25()
 			elif bq25895_status['ChargeStatus'] == 'Pre-Charge':
 				led_precharge()
-			elif bq25895_status['ChargeStatus'] == 'Not Charging':
+			elif bq25895_status['ChargeStatus'] == 'Discharging':
 				led_full()
 			else:
 				led_off()
-		else:	# Power not connected
+		else:	# Power Disconnected
 			if max17048_soc > 90:
 				led_full()
 			elif ((max17048_soc > 75) and (max17048_soc <= 90)):
