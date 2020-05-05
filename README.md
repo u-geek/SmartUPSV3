@@ -28,3 +28,7 @@ sudo ./install.sh
                │                                                          │
                └──────────────────────────────────────────────────────────┘
 
+
+View status:
+
+sudo python status.py or sudo python status.py -t

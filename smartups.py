@@ -15,7 +15,8 @@ BUS_ADDR 		= 1
 disconnectflag 	= False
 exit_thread 	= False
 max17048_soc	= 0
-POWEROFF_POWER = 5
+POWEROFF_POWER  = 5
+count           = 0
 
 #MAX17048 settings
 MAX17048_ADDR 	= 0x36
@@ -433,15 +434,19 @@ if __name__ == '__main__':
 	bq25895_read_status()
 	led_init()
 	led_precharge()
-	thread_led = threading.Thread(target=led_show)  #线程对象
+	thread_led = threading.Thread(target=led_show)
 	thread_led.start() 
 	try:
 		while (True):
 			max17048_getstatus()
 			bq25895_read_status()
 			if ((bq25895_status['Input'] != 'Connected') and (max17048_soc < POWEROFF_POWER)):
-				os.system("sudo halt -h")
-#			print "step: " , step, " Charge status:" , bq25895_status['ChargeStatus'], " soc: ", max17048_soc
+				count = count + 1
+				#print bq25895_status['Input']
+				if count > 10:
+					os.system("sudo halt -h")
+			#print bq25895_status['Input']
+			#print " Charge status:" , bq25895_status['ChargeStatus'], " soc: ", max17048_soc
 	except:
 		exit_thread=True
 		thread_led.join()
