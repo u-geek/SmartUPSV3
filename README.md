@@ -17,9 +17,10 @@ sudo ./install.sh
                │                 2 LED Brightness [ 10% ]                 │
                │                 3 Poweoff power [ <5% ]                  │
                │                 4 Autorun [ enabled ]                    │
-               │                 5 Apply Settings                         │
-               │                 6 Remove                                 │
-               │                 7 Exit                                   │
+               │                 5 Safe shutdown [ enabled ]              │
+               │                 6 Apply Settings                         │
+               │                 7 Remove                                 │
+               │                 8 Exit                                   │
                │                                                          │
                │                                                          │
                │                                                          │
