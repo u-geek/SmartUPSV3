@@ -182,6 +182,12 @@ def print_max17048status():
 	print "           SOC: " , max17048_soc , "%"
 	#print "Status of bq25895:"
 
+def get_print_all_status():
+	max17048_getstatus()
+	bq25895_read_status()
+	print_bq25895status()
+	print_max17048status()
+	print ""
 	
 def handler(signum, frame):
 	print "Signal is received:" + str(signum)
@@ -209,20 +215,14 @@ if __name__ == '__main__':
 	print "Reading status..."
 	
 	try:
-		max17048_getstatus()
-		bq25895_read_status()
-		print_bq25895status()
+		get_print_all_status()
 
 		if len(sys.argv) > 0:
 			if sys.argv[1] == "-t":
 				status_loop = True
 			
 		while status_loop is True:
-			bq25895_read_status()
-			max17048_getstatus()
-			print_bq25895status()
-			print_max17048status()
-			print ""
+			get_print_all_status()
 			
 		os.system("systemctl start smartups")
 	except:

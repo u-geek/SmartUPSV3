@@ -18,6 +18,7 @@ SERVCIEPOWEROFF="/smartups_poweroff.service"
 SOFTWARE_LIST="scons"
 POWEROFF_POWER=15
 SERVICEENABLED="disabled"
+SAFESHUTDOWN="disabled"
 ICL=104
 MENU_INSTALLED="Remove"
 CONFIG="/boot/config.txt"
@@ -134,8 +135,14 @@ function install_sysreq(){
 	fi
 }
 
-function check_autorun(){
-	return 1
+function check_safeshutdown(){
+	RESULT=$(cat /boot/config.txt | grep 'dtoverlay=gpio-poweroff' | awk -F= '{print $1}'
+)
+	if [ "$RESULT" != "dtoverlay" ]; then
+		SAFESHUTDOWN="disabled"
+	else
+		SAFESHUTDOWN="enabled"
+	fi
 }
 
 # get current gpio
@@ -205,6 +212,19 @@ function disable_service(){
 	else
 		echo "Service does not exists or has been stopped."
 	fi
+}
+
+function enable_safeshutdown(){
+	check_safeshutdown
+	if [ "$SAFESHUTDOWN" == "disabled" ]; then
+		echo "dtoverlay=gpio-poweroff,gpiopin=6" >> $CONFIG
+	fi
+	check_safeshutdown
+}
+
+function disable_safeshutdown(){
+	sed -i '/dtoverlay=gpio-poweroff/d' $CONFIG
+	check_safeshutdown
 }
 
 function stop_service(){
@@ -438,9 +458,10 @@ function menu_main(){
 	"2" "LED Brightness [ $BRIGHTNESS_MENU ]" \
 	"3" "Poweoff power [ <$POWEROFF_POWER% ]" \
 	"4" "Autorun [ $SERVICEENABLED ]" \
-	"5" "Apply Settings" \
-	"6" "$MENU_INSTALLED" \
-	"7" "Exit"  3>&1 1>&2 2>&3)
+	"5" "Safe shutdown [ $SAFESHUTDOWN ]" \
+	"6" "Apply Settings" \
+	"7" "$MENU_INSTALLED" \
+	"8" "Exit"  3>&1 1>&2 2>&3)
 	return $OPTION
 }
 
@@ -464,6 +485,8 @@ BRIGHTNESS_MENU=$PERCENT"%"
 get_poweroff_power
 
 check_installed
+check_safeshutdown
+
 if [ $? -eq 0 ]; then
 	menu_install
 	if [ $? -eq 1 ]; then
@@ -482,6 +505,7 @@ do
 		MENU_INSTALLED="Remove"
 	fi
 	get_service_isenabled
+	check_safeshutdown
 	menu_main
 	case $? in
 		1)
@@ -514,6 +538,13 @@ do
 		fi
 		;;
 		5)
+		if [ "$SAFESHUTDOWN" == "enabled" ]; then
+			disable_safeshutdown
+		else
+			enable_safeshutdown
+		fi
+		;;
+		6)
 		stop_service
 		echo "GPIO:"$GPIO" Brightness:"$BRIGHTNESS" Shutdown power:"$POWEROFF_POWER
 		if [ -f $FILENAME ]; then
@@ -536,14 +567,14 @@ do
 		fi
 		start_service
 		;;
-		6)
+		7)
 		if [ "$MENU_INSTALLED" == "Install" ]; then
 			install_ups
 		else
 			remove_ups
 		fi
 		;;
-		7)
+		8)
 		exit
 		;;
 		*)
