@@ -2,7 +2,7 @@
 
 U-Geek Raspberry PI Smart UPS V3
 
-git clone https://github.com/howardqiao/smartupsv3.git --depth 1
+git clone https://github.com/u-geek/SmartUPSV3.git --depth 1
 
 cd smartupsv3
 
