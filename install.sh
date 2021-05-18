@@ -121,18 +121,21 @@ function percnet_to_brightness() {
 
 # install system required
 function install_sysreq(){
-	SOFT=$(dpkg -l $SOFTWARE_LIST | grep "<none>")
+	SOFT=$(dpkg -l $SOFTWARE_LIST 2>&1 | grep "no packages found")
 	if [ -n "$SOFT" ]; then
-		apt update
+        echo "install scons"
+        apt update
 		apt -y install $SOFTWARE_LIST
-	fi
-	SOFT=$(pip search rpi-ws281x | grep "INSTALLED")
-	if [ -z "$SOFT" ]; then
+    fi
+   
+	# SOFT=$(pip search rpi-ws281x | grep "INSTALLED")
+	# if [ -z "$SOFT" ]; then
+        # echo "Install rpi-ws281x"
 		pip install rpi-ws281x
-		echo "rpi-ws281x install complete!"
-	else
-		echo "rpi-ws281x already exists."
-	fi
+		# echo "rpi-ws281x install complete!"
+	# else
+		# echo "rpi-ws281x already exists."
+	# fi
 }
 
 function check_safeshutdown(){
