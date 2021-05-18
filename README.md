@@ -4,7 +4,7 @@ U-Geek Raspberry Pi Smart UPS V3
 
 git clone https://github.com/u-geek/SmartUPSV3.git --depth 1
 
-cd smartupsv3
+cd SmartUPSV3
 
 sudo ./install.sh
 
